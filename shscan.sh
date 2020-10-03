@@ -93,7 +93,8 @@ if [ $NMAP_A -eq 1 ]; then
 	/usr/bin/nmap -sV -sC -A -Pn -p $(tr '\n' , <$RDIR/tcp_ports_$HOSTS.txt) $HOSTS -oN $RDIR/nmap_a_$HOSTS.txt
 fi
 
-if [ $ENUM4 -eq 1 ] || [ $(grep "\b445\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
+if [ $ENUM4 -eq 1 ] && [ $(grep "\b445\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
+	enum4linux-ng -a $HOSTS | tee $RDIR/enum4ng_noauth_$HOSTS.txt
 	/usr/bin/enum4linux -a $HOSTS | tee $RDIR/enum4_noauth_$HOSTS.txt
 	/usr/bin/smbmap -H $HOSTS | tee $RDIR/smbmap_noauth_$HOSTS.txt
 fi
@@ -117,43 +118,47 @@ if [ $WEB -eq 1  ]; then
 		/usr/bin/dirsearch -u http://$HOSTS -E --plain-text-report $RDIR/dirsearch_http_$HOSTS.txt
 		/usr/bin/nikto -host $HOSTS -port 80 | tee $RDIR/nikto_http_$HOSTS.txt
 		/usr/bin/whatweb http://$HOSTS -a 3 | tee $RDIR/whatweb_http_$HOSTS.txt
+		hakrawler -all -linkfinder -url -robots http://$HOSTS | tee $RDIR/hakrawler_http_$HOSTS.txt
 	fi
         if [ $(grep "\b443\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
                 /usr/bin/dirsearch -u https://$HOSTS -E --plain-text-report $RDIR/dirsearch_https_$HOSTS.txt
 		/usr/bin/nikto -host $HOSTS -port 443 | tee $RDIR/nikto_https_$HOSTS.txt
 		/usr/bin/whatweb https://$HOSTS -a 3 | tee $RDIR/whatweb_https_$HOSTS.txt
+		hakrawler -all -linkfinder -url -robots https://$HOSTS | tee $RDIR/hakrawler_https_$HOSTS.txt
         fi
         if [ $(grep "\b8080\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
                 /usr/bin/dirsearch -u http://$HOSTS:8080 -E --plain-text-report $RDIR/dirsearch_http_8080_$HOSTS.txt
 		/usr/bin/nikto -host $HOSTS -port 8080 | tee $RDIR/nikto_http_8080_$HOSTS.txt
 		/usr/bin/whatweb http://$HOSTS:8080 -a 3 | tee $RDIR/whatweb_http_8080_$HOSTS.txt
+		hakrawler -all -linkfinder -url -robots http://$HOSTS:8080 | tee $RDIR/hakrawler_http_8080_$HOSTS.txt
         fi
 	if [ $(grep "\b8000\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
                 /usr/bin/dirsearch -u http://$HOSTS:8000 -E --plain-text-report $RDIR/dirsearch_http_8000_$HOSTS.txt
                 /usr/bin/nikto -host $HOSTS -port 8000 | tee $RDIR/nikto_http_8000_$HOSTS.txt
                 /usr/bin/whatweb http://$HOSTS:8000 -a 3 | tee $RDIR/whatweb_http_8000_$HOSTS.txt
+		hakrawler -all -linkfinder -url -robots http://$HOSTS:8000 | tee $RDIR/hakrawler_http_8000_$HOSTS.txt
         fi
 
 fi
 
 # Extra tests:
 
-printf "Doing some extra tests"
+printf "Doing some extra tests for ftp,mysql,smtp,kerberos if the ports are open."
 if [ $EXTRA -eq 1 ]; then
-	printf "Scanning ftp"
 	if [ $(grep "\b21\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
+		printf "Scanning ftp"
 		nmap --script=ftp-* -p 21 $HOSTS -oN $RDIR/nmap_ftp_$HOSTS.txt
 	fi
-	printf "Scanning mysql"
 	if [ $(grep "\b3306\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
+		printf "Scanning mysql"
 		/usr/bin/nmap -sV -Pn -vv -script=mysql* -p 3306 $HOSTS -oN $RDIR/nmap_mysql_$HOSTS.txt
 	fi
-	printf "Scanning smtp"
 	if [ $(grep "\b25\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
+		printf "Scanning smtp"
 		/usr/bin/nmap --script=smtp-commands,smtp-enum-users,smtp-vuln-cve2010-4344,smtp-vuln-cve2011-1720,smtp-vuln-cve2011-1764 -p 25 $HOSTS -oN $RDIR/nmap_smtp_$HOSTS.txt
 	fi
-	printf "Testing kerberos"
 	if [ $(grep "\b88\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
+		printf "Testing kerberos"
 		nmap -p88 --script krb5-enum-users --script-args krb5-enum-users.realm=research $HOSTS -oN $RDIR/nmap_kerberos_$HOSTS.txt
 	fi
 fi
