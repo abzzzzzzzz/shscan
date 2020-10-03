@@ -20,7 +20,7 @@ EXTRA=0
 PARSED_ARGUMENTS=$(getopt -n shscan -o lfavs --long everything -- "$@")
 
 VALID_ARGUMENTS=$?
-if [ "$VALID_ARGUMENTS" != "1" ]; then
+if [ ! "$@" ]; then
   usage
   exit 1
 fi
