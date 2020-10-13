@@ -114,26 +114,27 @@ fi
 
 if [ $WEB -eq 1  ]; then
 	printf "Dirbusting $HOSTS on ports 80, 443 and 8080."
+	DIRBUST="/usr/bin/dirsearch -w /usr/share/dirsearch/db/dicc.txt -E"
 	if [ $(grep "\b80\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
-		/usr/bin/dirsearch -u http://$HOSTS -E --plain-text-report $RDIR/dirsearch_http_$HOSTS.txt
+		$DIRBUST -u http://$HOSTS --plain-text-report $RDIR/dirsearch_http_$HOSTS.txt
 		/usr/bin/nikto -host $HOSTS -port 80 | tee $RDIR/nikto_http_$HOSTS.txt
 		/usr/bin/whatweb http://$HOSTS -a 3 | tee $RDIR/whatweb_http_$HOSTS.txt
 		hakrawler -all -linkfinder -url -robots http://$HOSTS | tee $RDIR/hakrawler_http_$HOSTS.txt
 	fi
         if [ $(grep "\b443\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
-                /usr/bin/dirsearch -u https://$HOSTS -E --plain-text-report $RDIR/dirsearch_https_$HOSTS.txt
+                $DIRBUST -u https://$HOSTS --plain-text-report $RDIR/dirsearch_https_$HOSTS.txt
 		/usr/bin/nikto -host $HOSTS -port 443 | tee $RDIR/nikto_https_$HOSTS.txt
 		/usr/bin/whatweb https://$HOSTS -a 3 | tee $RDIR/whatweb_https_$HOSTS.txt
 		hakrawler -all -linkfinder -url -robots https://$HOSTS | tee $RDIR/hakrawler_https_$HOSTS.txt
         fi
         if [ $(grep "\b8080\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
-                /usr/bin/dirsearch -u http://$HOSTS:8080 -E --plain-text-report $RDIR/dirsearch_http_8080_$HOSTS.txt
+                $DIRBUST -u http://$HOSTS:8080 --plain-text-report $RDIR/dirsearch_http_8080_$HOSTS.txt
 		/usr/bin/nikto -host $HOSTS -port 8080 | tee $RDIR/nikto_http_8080_$HOSTS.txt
 		/usr/bin/whatweb http://$HOSTS:8080 -a 3 | tee $RDIR/whatweb_http_8080_$HOSTS.txt
 		hakrawler -all -linkfinder -url -robots http://$HOSTS:8080 | tee $RDIR/hakrawler_http_8080_$HOSTS.txt
         fi
 	if [ $(grep "\b8000\b" $RDIR/tcp_ports_$HOSTS.txt) ]; then
-                /usr/bin/dirsearch -u http://$HOSTS:8000 -E --plain-text-report $RDIR/dirsearch_http_8000_$HOSTS.txt
+                $DIRBUST -u http://$HOSTS:8000 --plain-text-report $RDIR/dirsearch_http_8000_$HOSTS.txt
                 /usr/bin/nikto -host $HOSTS -port 8000 | tee $RDIR/nikto_http_8000_$HOSTS.txt
                 /usr/bin/whatweb http://$HOSTS:8000 -a 3 | tee $RDIR/whatweb_http_8000_$HOSTS.txt
 		hakrawler -all -linkfinder -url -robots http://$HOSTS:8000 | tee $RDIR/hakrawler_http_8000_$HOSTS.txt
